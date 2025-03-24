@@ -1,4 +1,4 @@
-create database prueba;
+create database prueba; 
 
  git config --global user.email "alonsozuniga@liceovvh.cl"
   git config --global user.name "alonso2025432"
