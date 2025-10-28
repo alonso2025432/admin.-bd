@@ -77,12 +77,11 @@ def sp_listar_activos():
         # Recupera los resultados devueltos por el SP
         for result in cur.stored_results():
             # Itera sobre cada fila retornada (id, nombre, cargo, sueldo, created_at, updated_at)
-            for (id_usuario, nombre_usuario, tipo_usuario_id, created_at, updated_at) in result.fetchall():
+            for (id_usuario, nombre_usuario, tipo_usuario_id) in result.fetchall():
                 # Maneja posibles valores NULL en updated_at
-                ua = updated_at if updated_at is not None else "-"
+                
                 # Imprime los datos formateados
-                print(f"ID:{id_usuario:<3} | Nombre:{nombre_usuario:<50} | Tipo_usuario:{tipo_usuario_id:<3} | "
-                f"Creado:{created_at} | Actualizado:{ua}")
+                print(f"ID:{id_usuario:<3} | Nombre:{nombre_usuario:<50} | Tipo_usuario:{tipo_usuario_id:<3}")
     except mysql.connector.Error as e:
         print("❌ Error en sp_listar_activos:", e)
     finally:
@@ -112,16 +111,15 @@ def sp_listar_todos():
             # 6️⃣ 'fetchall()' obtiene todas las filas del conjunto de resultados.
             # Cada fila llega como una tupla con los valores en el mismo orden del SELECT en el SP:
             # (id, nombre, cargo, sueldo, eliminado, created_at, updated_at, deleted_at)
-            for (id_usuario, nombre_usuario, contraseña, eliminado, created_at, updated_at, deleted_at) in result.fetchall():
+            for (id_usuario, nombre_usuario, tipo_usuario_id, deleted) in result.fetchall():
 
                 # 7️⃣ Determina el estado del empleado según el valor del campo 'eliminado':
                 # Si es 0 → ACTIVO, si es 1 → ELIMINADO
-                estado = "ACTIVO" if eliminado == 0 else "ELIMINADO"
+                estado = "ACTIVO" if deleted == 0 else "ELIMINADO"
 
                 # 8️⃣ Maneja posibles valores NULL de la base de datos.
                 # MySQL traduce los NULL a 'None' en Python, así que si no hay fecha, muestra un guion.
-                ua = updated_at if updated_at is not None else "-"
-                da = deleted_at if deleted_at is not None else "-"
+                
 
                 # 9️⃣ Imprime cada fila con formato alineado para que la salida sea legible.
                 # - {id_:<3}   → alinea el ID a la izquierda en un ancho de 3 caracteres.
@@ -131,9 +129,8 @@ def sp_listar_todos():
                 # - {estado:<9} → deja 9 espacios para el estado (ACTIVO / ELIMINADO).
                 # Los demás campos se imprimen tal cual.
                 print(
-                    f"ID:{id_usuario:<3} | Nombre:{nombre_usuario:<50} | contraseña:{contraseña:<25} | "
-                    f"Creado:{created_at} | "
-                    f"Actualizado:{ua} | Eliminado:{da}"
+                    f"ID:{id_usuario:<3} | Nombre:{nombre_usuario:<50} | id de tipo usuario:{tipo_usuario_id:<25} | "
+                    
                 )
 
     # 10️⃣ Si ocurre un error durante la conexión, ejecución o lectura del SP,
@@ -150,7 +147,7 @@ def sp_listar_todos():
             cnx.close()
 
 
-def sp_borrado_logico(id_empleado: int):
+def sp_borrado_logico(id_usuario: int):
     """
     Marca un empleado como eliminado lógicamente llamando al procedimiento:
     sp_borrado_logico_empleado(IN p_id)
@@ -210,7 +207,7 @@ def sp_restaurar(id_usuario: int):
     try:
         cnx = conectar()
         cur = cnx.cursor()
-        cur.callproc("sp_restaurar_usuario", [id_usuario])
+        cur.callproc("sp_usuario_restaurar", [id_usuario])
         cnx.commit()
         print(f"✅ Restaurado ID {id_usuario} (si estaba eliminado).")
     except mysql.connector.Error as e:
@@ -231,9 +228,9 @@ def menu():
     while True:
         # Muestra opciones disponibles
         print("\n===== MENÚ EMPLEADOS (MySQL + SP) =====")
-        print("1) Insertar empleado")
-        print("2) Listar empleados ACTIVOS")
-        print("3) Listar empleados (TODOS)")
+        print("1) Insertar usuario")
+        print("2) Listar usuarios ACTIVOS")
+        print("3) Listar usuarios (TODOS)")
         print("4) Borrado lógico por ID")
         print("5) Restaurar por ID (opcional)")
         print("0) Salir")
