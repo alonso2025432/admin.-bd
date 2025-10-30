@@ -42,14 +42,33 @@ DELIMITER ;
 -- ------------------------------------------------------------------
 
 DELIMITER //
+CREATE PROCEDURE sp_usuario_restaurar(
+    IN p_id_usuario INT
+)
+BEGIN
+    -- Verificar si el usuario existe y está marcado como eliminado
+    IF EXISTS (SELECT 1 FROM usuario WHERE id_usuario = p_id_usuario AND deleted = 1) THEN
+        -- Restaurar el usuario (cambiar deleted = 0)
+        UPDATE usuario
+        SET deleted = 0
+        WHERE id_usuario = p_id_usuario;
+    END IF;
+END //
+DELIMITER ;
+
+
+
+
+DELIMITER //
 CREATE PROCEDURE sp_usuario_insertar(
+	in u_id_usuario int,
     IN u_nombre VARCHAR(50),
     IN u_contraseña VARCHAR(25),
     IN u_tipo_usuario_id INT
 )
 BEGIN
-    INSERT INTO usuario(nombre_usuario, contraseña, tipo_usuario_id, deleted)
-    VALUES (u_nombre, u_contraseña, u_tipo_usuario_id, 0);
+    INSERT INTO usuario(id_usuario,nombre_usuario, contraseña, tipo_usuario_id, deleted)
+    VALUES (u_id_usuario,u_nombre, u_contraseña, u_tipo_usuario_id, 0);
 END//
 DELIMITER ;
 
